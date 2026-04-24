@@ -1,35 +1,37 @@
 export interface Phase {
   id: string;
   title: string;
-  color: string;
+  result?: string;
+  color?: string;
 }
 
 export interface Area {
   id: string;
-  title: string;
+  name: string;
+  shortName: string;
   color: string;
 }
 
 export interface Module {
   id: string;
-  title: string;
+  name: string;
   color: string;
 }
 
 export interface Role {
   id: string;
-  title: string;
+  name: string;
   color: string;
 }
 
 export interface ChecklistItem {
-  id: string;
+  id: number | string;
   text: string;
   completed: boolean;
 }
 
 export interface ProjectCard {
-  id: string;
+  id: string | number;
   title: string;
   phase: string[];
   area: string[];

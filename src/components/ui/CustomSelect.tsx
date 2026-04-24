@@ -1,20 +1,19 @@
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Check } from 'lucide-react';
 
 interface CustomSelectProps {
   label: string;
-  options: { id: string; title: string }[];
+  options: { id: string, title: string }[];
   selectedValues: string[];
   onToggle: (id: string) => void;
 }
 
 export default function CustomSelect({ label, options, selectedValues, onToggle }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -22,48 +21,48 @@ export default function CustomSelect({ label, options, selectedValues, onToggle 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const displayValue = selectedValues.includes('all') 
-    ? 'Все' 
-    : `${selectedValues.length} выбрано`;
+  const hasSelections = selectedValues.length > 0 && !selectedValues.includes('all');
 
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative" ref={containerRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between min-w-36 bg-zinc-900 border border-zinc-800 text-zinc-100 text-sm rounded-md p-2 hover:bg-zinc-800 transition-colors"
+        className={`px-2 py-1 rounded-md text-sm font-medium transition-colors border ${
+          hasSelections 
+            ? 'bg-[#C91F1F]/10 border-[#C91F1F]/30 text-[#C91F1F]' 
+            : 'bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-700'
+        }`}
       >
-        <span className="truncate">{label}: {displayValue}</span>
-        <ChevronDown size={16} className="text-zinc-400 ml-2" />
+        {label} {hasSelections && `(${selectedValues.length})`}
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 mt-1 w-48 bg-zinc-900 border border-zinc-800 rounded-md shadow-lg overflow-hidden">
-          <div className="max-h-60 overflow-y-auto p-1">
-            <button
-              onClick={() => onToggle('all')}
-              className={`w-full text-left flex items-center px-2 py-1.5 text-sm rounded-md transition-colors ${selectedValues.includes('all') ? 'bg-[#C91F1F]/20 text-[#C91F1F]' : 'text-zinc-100 hover:bg-zinc-800'}`}
-            >
-              <div className="w-5 flex items-center justify-center shrink-0">
-                {selectedValues.includes('all') && <Check size={14} />}
-              </div>
-              Все
-            </button>
-            {options.map((opt) => {
-              const isSelected = selectedValues.includes(opt.id);
-              return (
-                <button
-                  key={opt.id}
-                  onClick={() => onToggle(opt.id)}
-                  className={`w-full text-left flex items-center px-2 py-1.5 text-sm rounded-md transition-colors ${isSelected ? 'bg-[#C91F1F]/20 text-[#C91F1F]' : 'text-zinc-100 hover:bg-zinc-800'}`}
-                >
-                  <div className="w-5 flex items-center justify-center shrink-0">
-                    {isSelected && <Check size={14} />}
-                  </div>
-                  {opt.title}
-                </button>
-              );
-            })}
-          </div>
+        <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-xl z-50 py-1 max-h-64 overflow-auto">
+          <label className="flex items-center gap-2 px-3 py-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 cursor-pointer transition-colors group">
+            <input
+              type="checkbox"
+              checked={selectedValues.includes('all')}
+              onChange={() => onToggle('all')}
+              className="rounded border-zinc-300 dark:border-zinc-700 accent-[#C91F1F] cursor-pointer bg-zinc-50 dark:bg-zinc-950 w-3.5 h-3.5"
+            />
+            <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 group-hover:text-[#C91F1F] transition-colors">
+              Все {label.toLowerCase()}
+            </span>
+          </label>
+          <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-1 mx-2"></div>
+          {options.map((opt) => (
+            <label key={opt.id} className="flex items-center gap-2 px-3 py-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 cursor-pointer transition-colors group">
+              <input
+                type="checkbox"
+                checked={selectedValues.includes(opt.id)}
+                onChange={() => onToggle(opt.id)}
+                className="rounded border-zinc-300 dark:border-zinc-700 accent-[#C91F1F] cursor-pointer bg-zinc-50 dark:bg-zinc-950 w-3.5 h-3.5"
+              />
+              <span className="text-sm text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">
+                {opt.title}
+              </span>
+            </label>
+          ))}
         </div>
       )}
     </div>

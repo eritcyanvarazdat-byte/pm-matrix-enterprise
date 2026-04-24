@@ -5,7 +5,8 @@ export default function MatrixBoard() {
   const { phases, areas, cards, filters, searchQuery } = useStore();
 
   const filteredCards = cards.filter(card => {
-    if (searchQuery && !card.title.toLowerCase().includes(searchQuery.toLowerCase())) {
+    if (searchQuery && !card.title.toLowerCase().includes(searchQuery.toLowerCase()) && 
+        !(card.desc && card.desc.toLowerCase().includes(searchQuery.toLowerCase()))) {
       return false;
     }
     
@@ -28,55 +29,70 @@ export default function MatrixBoard() {
   });
 
   return (
-    <div className="min-w-max p-6">
+    <div className="min-w-max p-4">
       <div 
-        className="grid gap-4"
+        className="grid gap-3"
         style={{ 
-          gridTemplateColumns: `200px repeat(${Math.max(phases.length, 1)}, minmax(300px, 1fr))` 
+          gridTemplateColumns: `200px repeat(${Math.max(phases.length, 1)}, 260px)` 
         }}
       >
-        {/* Top-left corner empty */}
-        <div className="sticky top-0 left-0 z-20 bg-zinc-950 p-4 border-b border-r border-zinc-800 rounded-tl-lg"></div>
+        <div className="sticky top-0 left-0 z-40 bg-zinc-50 dark:bg-zinc-950 p-3 border-b border-r border-zinc-200 dark:border-zinc-800 rounded-tl-lg font-bold text-zinc-400 dark:text-zinc-500 flex items-end justify-end text-xs tracking-wider transition-colors duration-200">
+          ОБЛАСТИ / ФАЗЫ
+        </div>
 
-        {/* Phase headers (Columns) */}
-        {phases.map((phase) => (
-          <div 
-            key={phase.id} 
-            className="sticky top-0 z-10 bg-zinc-900 border-b border-zinc-800 p-4 font-semibold text-zinc-100 rounded-t-lg flex items-center justify-between"
-          >
-            {phase.title}
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: phase.color }}></div>
-          </div>
-        ))}
-
-        {/* Areas rows */}
-        {areas.map((area) => (
-          <div key={area.id} className="contents">
-            {/* Area header (Row header) */}
-            <div className="sticky left-0 z-10 bg-zinc-900 border-r border-b border-zinc-800 p-4 font-semibold text-zinc-100 flex items-center justify-between">
-              {area.title}
-              <div className="w-2 h-8 rounded" style={{ backgroundColor: area.color }}></div>
+        {phases.map((phase) => {
+          const count = filteredCards.filter(c => c.phase.includes(phase.id)).length;
+          return (
+            <div 
+              key={phase.id} 
+              className="sticky top-0 z-30 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 p-3 rounded-t-lg flex items-center justify-between transition-colors duration-200"
+            >
+              <div>
+                <div className="font-bold text-zinc-900 dark:text-zinc-100 text-sm">{phase.title}</div>
+                {phase.result && <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{phase.result}</div>}
+              </div>
+              <div className="w-5 h-5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 flex items-center justify-center text-xs font-medium border border-zinc-200 dark:border-zinc-700">
+                {count}
+              </div>
             </div>
+          );
+        })}
 
-            {/* Cells */}
-            {phases.map((phase) => {
-              const cellCards = filteredCards.filter(
-                (c) => c.phase.includes(phase.id) && c.area.includes(area.id)
-              );
-
-              return (
-                <div 
-                  key={`${area.id}-${phase.id}`} 
-                  className="bg-zinc-950/50 border border-dashed border-zinc-800 p-3 min-h-[150px] rounded-lg flex flex-col gap-3"
-                >
-                  {cellCards.map(card => (
-                    <CardItem key={card.id} card={card} />
-                  ))}
+        {areas.map((area) => {
+          const areaCount = filteredCards.filter(c => c.area.includes(area.id)).length;
+          return (
+            <div key={area.id} className="contents">
+              <div 
+                className="sticky left-0 z-20 bg-white dark:bg-zinc-900 border-r border-b border-zinc-200 dark:border-zinc-800 p-3 flex flex-col justify-center relative pl-4 transition-colors duration-200"
+              >
+                <div className="absolute left-0 top-0 bottom-0 w-1" style={{ backgroundColor: area.color }}></div>
+                <div className="flex items-center justify-between w-full">
+                  <span className="font-bold text-zinc-900 dark:text-zinc-100 text-sm leading-tight pr-2">{area.name}</span>
+                  <div className="w-5 h-5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 flex items-center justify-center text-xs font-medium border border-zinc-200 dark:border-zinc-700 shrink-0">
+                    {areaCount}
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        ))}
+              </div>
+
+              {phases.map((phase) => {
+                const cellCards = filteredCards.filter(
+                  (c) => c.phase.includes(phase.id) && c.area.includes(area.id)
+                );
+
+                return (
+                  <div 
+                    key={`${area.id}-${phase.id}`} 
+                    className="bg-white/50 dark:bg-zinc-950/50 border border-dashed border-zinc-300 dark:border-zinc-800 p-2 min-h-[100px] rounded-lg flex flex-col gap-2 transition-colors duration-200"
+                  >
+                    {cellCards.map(card => (
+                      <CardItem key={card.id} card={card} />
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
