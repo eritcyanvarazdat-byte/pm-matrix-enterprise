@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ProjectCard, Phase, Area, Module, Role } from '../types';
+import type { ProjectCard, Phase, Stage, Area, Module, Role } from '../types';
 
 export interface Filters {
   module: string[];
@@ -11,6 +11,7 @@ export const emptyForm: ProjectCard = {
   id: '',
   title: '',
   phase: [],
+  stage: [],
   area: [],
   modules: [],
   roles: [],
@@ -22,12 +23,15 @@ export const emptyForm: ProjectCard = {
 export interface StoreState {
   // Данные БД
   phases: Phase[];
+  stages: Stage[];
   areas: Area[];
   modules: Module[];
   roles: Role[];
   cards: ProjectCard[];
 
   // UI стейт
+  isAuthChecking: boolean;
+  viewMode: 'phases' | 'stages';
   theme: 'light' | 'dark';
   isAuthenticated: boolean;
   selectedCard: ProjectCard | null;
@@ -42,13 +46,15 @@ export interface StoreState {
   filters: Filters;
 
   // Экшены
+  setIsAuthChecking: (isAuthChecking: boolean) => void;
   toggleTheme: () => void;
   setAuth: (isAuthenticated: boolean) => void;
-  setDirectories: (phases: Phase[], areas: Area[], modules: Module[], roles: Role[]) => void;
+  setDirectories: (phases: Phase[], stages: Stage[], areas: Area[], modules: Module[], roles: Role[]) => void;
   setCards: (cards: ProjectCard[]) => void;
   setSelectedCard: (card: ProjectCard | null) => void;
   openSidebar: () => void;
   closeSidebar: () => void;
+  setViewMode: (viewMode: 'phases' | 'stages') => void;
   setIsSettingsOpen: (isOpen: boolean) => void;
   setIsFormOpen: (isOpen: boolean) => void;
   setFormData: (data: ProjectCard) => void;
@@ -61,12 +67,15 @@ export interface StoreState {
 
 export const useStore = create<StoreState>((set) => ({
   phases: [],
+  stages: [],
   areas: [],
   modules: [],
   roles: [],
   cards: [],
 
   theme: (localStorage.getItem('theme') as 'light' | 'dark') || 'dark',
+  isAuthChecking: true,
+  viewMode: 'phases',
   isAuthenticated: false,
   selectedCard: null,
   isSidebarOpen: false,
@@ -88,10 +97,12 @@ export const useStore = create<StoreState>((set) => ({
     return { theme: newTheme };
   }),
 
+  setIsAuthChecking: (isAuthChecking) => set({ isAuthChecking }),
+
   setAuth: (isAuthenticated) => set({ isAuthenticated }),
 
-  setDirectories: (phases, areas, modules, roles) =>
-    set({ phases, areas, modules, roles }),
+  setDirectories: (phases, stages, areas, modules, roles) =>
+    set({ phases, stages, areas, modules, roles }),
 
   setCards: (cards) => set({ cards }),
 
@@ -100,6 +111,8 @@ export const useStore = create<StoreState>((set) => ({
   openSidebar: () => set({ isSidebarOpen: true }),
 
   closeSidebar: () => set({ isSidebarOpen: false, isFormOpen: false, selectedCard: null }),
+
+  setViewMode: (viewMode) => set({ viewMode }),
 
   setIsSettingsOpen: (isSettingsOpen) => set({ isSettingsOpen }),
   

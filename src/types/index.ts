@@ -5,6 +5,13 @@ export interface Phase {
   color?: string;
 }
 
+export interface Stage {
+  id: string;
+  title: string;
+  result?: string;
+  color?: string;
+}
+
 export interface Area {
   id: string;
   name: string;
@@ -34,6 +41,7 @@ export interface ProjectCard {
   id: string | number;
   title: string;
   phase: string[];
+  stage: string[];
   area: string[];
   modules: string[];
   roles: string[];

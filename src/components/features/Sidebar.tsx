@@ -8,7 +8,7 @@ export default function Sidebar() {
   const { 
     isSidebarOpen, selectedCard, isFormOpen, formData, 
     closeSidebar, setFormData, setIsFormOpen, setSelectedCard,
-    phases, areas, modules, roles, cards, setCards
+    phases, stages, viewMode, areas, modules, roles, cards, setCards
   } = useStore();
 
   const isDemo = import.meta.env.VITE_FIREBASE_API_KEY === 'your_api_key_here';
@@ -53,9 +53,11 @@ export default function Sidebar() {
     );
     const updatedCard = { ...selectedCard, checklist: updatedChecklist };
     
+    // Оптимистичное обновление UI
+    setSelectedCard(updatedCard);
+    
     if (isDemo) {
       setCards(cards.map(c => c.id === selectedCard.id ? updatedCard : c));
-      setSelectedCard(updatedCard);
       return;
     }
     await setDoc(doc(db, 'cards', selectedCard.id.toString()), updatedCard);
@@ -72,7 +74,16 @@ export default function Sidebar() {
 
   const handleOpenEdit = () => {
     if (selectedCard) {
-      setFormData({ ...selectedCard, checklist: selectedCard.checklist || [], link: selectedCard.link || '' });
+      setFormData({ 
+        ...selectedCard, 
+        phase: selectedCard.phase || [],
+        stage: selectedCard.stage || [],
+        area: selectedCard.area || [],
+        modules: selectedCard.modules || [],
+        roles: selectedCard.roles || [],
+        checklist: selectedCard.checklist || [], 
+        link: selectedCard.link || '' 
+      });
       setIsFormOpen(true);
     }
   };
@@ -89,7 +100,7 @@ export default function Sidebar() {
       >
         <div className="h-12 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-4 shrink-0 bg-zinc-50 dark:bg-zinc-950 transition-colors duration-200">
           <h2 className="font-semibold text-base text-zinc-900 dark:text-zinc-100 truncate pr-4 text-[#C91F1F]">
-            {isFormOpen ? (formData.id ? "РЕДАКТИРОВАНИЕ" : "НОВАЯ КАРТОЧКА") : selectedCard?.phase.map(p => phases.find(ph => ph.id === p)?.title).join(', ').toUpperCase()}
+            {isFormOpen ? (formData.id ? "РЕДАКТИРОВАНИЕ" : "НОВАЯ КАРТОЧКА") : selectedCard ? (viewMode === 'phases' ? (selectedCard.phase || []).map(p => phases.find(ph => ph.id === p)?.title).join(', ').toUpperCase() : (selectedCard.stage || []).map(s => stages.find(st => st.id === s)?.title).join(', ').toUpperCase()) : ''}
           </h2>
           <button 
             onClick={closeSidebar}
@@ -135,14 +146,24 @@ export default function Sidebar() {
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="block text-[11px] font-medium text-zinc-500 mb-1 uppercase tracking-wider">Область</label>
+                  <label className="block text-[11px] font-medium text-zinc-500 mb-1 uppercase tracking-wider">Этап</label>
                   <CustomSelect
-                    label="Области"
-                    options={areas.map(a => ({ id: a.id, title: a.name }))}
-                    selectedValues={formData.area}
-                    onToggle={(id) => setFormData({...formData, area: formData.area.includes(id) ? formData.area.filter(v => v !== id) : [...formData.area, id]})}
+                    label="Этапы"
+                    options={stages.map(s => ({ id: s.id, title: s.title }))}
+                    selectedValues={formData.stage}
+                    onToggle={(id) => setFormData({...formData, stage: formData.stage.includes(id) ? formData.stage.filter(v => v !== id) : [...formData.stage, id]})}
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-zinc-500 mb-1 uppercase tracking-wider">Область</label>
+                <CustomSelect
+                  label="Области"
+                  options={areas.map(a => ({ id: a.id, title: a.name }))}
+                  selectedValues={formData.area}
+                  onToggle={(id) => setFormData({...formData, area: formData.area.includes(id) ? formData.area.filter(v => v !== id) : [...formData.area, id]})}
+                />
               </div>
 
               <div>
@@ -233,7 +254,7 @@ export default function Sidebar() {
           ) : selectedCard ? (
             <div className="space-y-4">
               <div className="flex flex-wrap gap-1.5 mb-3">
-                {selectedCard.area.map(aId => {
+                {(selectedCard.area || []).map(aId => {
                   const area = areas.find(a => a.id === aId);
                   return area ? (
                     <div key={aId} className="flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300">
@@ -261,9 +282,29 @@ export default function Sidebar() {
               )}
 
               <div>
+                <h3 className="text-[11px] font-medium text-zinc-500 mb-1 uppercase tracking-wider">Фаза</h3>
+                <div className="flex flex-col gap-1.5">
+                  {(selectedCard.phase || []).length ? (selectedCard.phase || []).map(pId => {
+                    const phase = phases.find(p => p.id === pId);
+                    return phase ? <span key={pId} className="text-sm text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded px-2 py-1">{phase.title}</span> : null;
+                  }) : <span className="text-sm text-zinc-500">Не указана</span>}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-[11px] font-medium text-zinc-500 mb-1 uppercase tracking-wider">Этап строительства</h3>
+                <div className="flex flex-col gap-1.5">
+                  {(selectedCard.stage || []).length ? (selectedCard.stage || []).map(sId => {
+                    const stage = stages.find(s => s.id === sId);
+                    return stage ? <span key={sId} className="text-sm text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded px-2 py-1">{stage.title}</span> : null;
+                  }) : <span className="text-sm text-zinc-500">Не указан</span>}
+                </div>
+              </div>
+
+              <div>
                 <h3 className="text-[11px] font-medium text-zinc-500 mb-1 uppercase tracking-wider">ПО</h3>
                 <div className="flex flex-wrap gap-1.5">
-                  {selectedCard.modules.length ? selectedCard.modules.map(mId => {
+                  {(selectedCard.modules || []).length ? (selectedCard.modules || []).map(mId => {
                     const mod = modules.find(m => m.id === mId);
                     return mod ? (
                       <span key={mId} className="flex items-center gap-1 text-xs px-2 py-0.5 rounded border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 font-medium">
@@ -278,7 +319,7 @@ export default function Sidebar() {
               <div>
                 <h3 className="text-[11px] font-medium text-zinc-500 mb-1 uppercase tracking-wider">Роли</h3>
                 <div className="flex flex-col gap-1.5">
-                  {selectedCard.roles.length ? selectedCard.roles.map(rId => {
+                  {(selectedCard.roles || []).length ? (selectedCard.roles || []).map(rId => {
                     const role = roles.find(r => r.id === rId);
                     return role ? (
                       <div key={rId} className="flex items-center gap-2">
@@ -311,7 +352,7 @@ export default function Sidebar() {
                           onChange={() => handleToggleChecklistInView(item.id)}
                           className="mt-0.5 rounded border-zinc-300 dark:border-zinc-700 accent-[#C91F1F] cursor-pointer bg-white dark:bg-zinc-900 w-3.5 h-3.5"
                         />
-                        <span className={`text-sm select-none ${item.completed ? 'text-zinc-400 dark:text-zinc-600 line-through' : 'text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors'}`}>
+                        <span className={`text-sm select-none ${item.completed ? 'text-zinc-400 dark:text-zinc-600' : 'text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors'}`}>
                           {item.text || 'Пустая задача'}
                         </span>
                       </label>

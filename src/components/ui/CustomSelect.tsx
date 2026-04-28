@@ -23,6 +23,17 @@ export default function CustomSelect({ label, options, selectedValues, onToggle 
 
   const hasSelections = selectedValues.length > 0 && !selectedValues.includes('all');
 
+  const getPluralLabel = (lbl: string) => {
+    switch (lbl) {
+      case 'Область': return 'Все области';
+      case 'ПО': return 'Все ПО';
+      case 'Роль': return 'Все роли';
+      case 'Фазы': return 'Все фазы';
+      case 'Этапы': return 'Все этапы';
+      default: return `Все ${lbl.toLowerCase()}`;
+    }
+  };
+
   return (
     <div className="relative" ref={containerRef}>
       <button
@@ -46,7 +57,7 @@ export default function CustomSelect({ label, options, selectedValues, onToggle 
               className="rounded border-zinc-300 dark:border-zinc-700 accent-[#C91F1F] cursor-pointer bg-zinc-50 dark:bg-zinc-950 w-3.5 h-3.5"
             />
             <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 group-hover:text-[#C91F1F] transition-colors">
-              Все {label.toLowerCase()}
+              {getPluralLabel(label)}
             </span>
           </label>
           <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-1 mx-2"></div>

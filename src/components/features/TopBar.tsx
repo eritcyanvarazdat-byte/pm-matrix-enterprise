@@ -8,7 +8,7 @@ export default function TopBar() {
     toggleFilter, searchQuery, setSearchQuery,
     selectedForExport, setIsSettingsOpen, setIsFormOpen,
     phases, cards, clearExportSelection, setFormData, setSelectedCard,
-    theme, toggleTheme
+    theme, toggleTheme, viewMode, setViewMode
   } = useStore();
 
   const handleExportMarkdown = () => {
@@ -61,6 +61,7 @@ export default function TopBar() {
       id: '',
       title: '',
       phase: [],
+      stage: [],
       area: [],
       modules: [],
       roles: [],
@@ -90,6 +91,21 @@ export default function TopBar() {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-md pl-8 pr-3 py-1 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-[#C91F1F] transition-colors"
           />
+        </div>
+
+        <div className="flex bg-zinc-100 dark:bg-zinc-950 p-0.5 rounded-md border border-zinc-200 dark:border-zinc-800">
+          <button 
+            onClick={() => setViewMode('phases')}
+            className={`px-3 py-1 text-xs font-medium rounded transition-colors ${viewMode === 'phases' ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+          >
+            Фазы
+          </button>
+          <button 
+            onClick={() => setViewMode('stages')}
+            className={`px-3 py-1 text-xs font-medium rounded transition-colors ${viewMode === 'stages' ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+          >
+            Этапы
+          </button>
         </div>
 
         <div className="flex items-center gap-2">
